@@ -1,2 +1,376 @@
 # bushibs.github.io
 a prank for friends
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagnostic</title>
+    <style>
+        /* --- VISUAL DESIGN & CSS VARIABLES --- */
+        :root {
+            --bg-color: #000000;
+            --text-color: #00FF00;
+            --warning-color: #FF0033;
+            --font-main: 'Courier New', Courier, monospace;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- EFFECTS --- */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .flicker {
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.9; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .rgb-split {
+            text-shadow: -2px 0 red, 2px 0 blue;
+        }
+
+        .shake {
+            animation: shake 0.2s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            25% { transform: translate(-1px, -2px) rotate(-1deg); }
+            50% { transform: translate(-3px, 0px) rotate(1deg); }
+            75% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -1px) rotate(-1deg); }
+        }
+
+        /* --- LAYOUTS --- */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            z-index: 200;
+            position: relative;
+        }
+
+        #start-btn {
+            background: transparent;
+            color: var(--text-color);
+            border: 2px solid var(--text-color);
+            padding: 15px 30px;
+            font-size: 24px;
+            font-family: var(--font-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #start-btn:hover {
+            background: var(--text-color);
+            color: var(--bg-color);
+        }
+
+        #terminal-container {
+            display: none;
+            padding: 20px;
+            height: 80vh;
+            overflow-y: auto;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        .warning-text { color: var(--warning-color); font-weight: bold; font-size: 22px; }
+        .highlight-text { background-color: var(--text-color); color: var(--bg-color); }
+        .funny-text { color: #FFFF00; }
+
+        /* --- PROGRESS BAR --- */
+        #progress-wrapper {
+            display: none;
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            border: 2px solid var(--text-color);
+            height: 30px;
+            z-index: 50;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--warning-color);
+            transition: width 0.1s;
+        }
+
+        #progress-text {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-weight: bold;
+            mix-blend-mode: difference;
+        }
+
+        /* --- FINAL REVEAL --- */
+        #reveal-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            color: #111;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            z-index: 500;
+            position: relative;
+        }
+
+        #reveal-screen h1 { font-size: 50px; margin-bottom: 10px; }
+        #reveal-screen p { font-size: 24px; color: #555; }
+        
+        .action-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background: #007BFF;
+            color: white;
+            cursor: pointer;
+            margin-inline: 10px;
+        }
+        .action-btn:hover { background: #0056b3; }
+
+        .cursor { display: inline-block; width: 10px; height: 20px; background: var(--text-color); animation: blink 1s infinite; vertical-align: middle;}
+        @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+
+    <div id="start-screen">
+        <p>System Diagnostic Tool v4.2</p>
+        <button id="start-btn">INITIATE DIAGNOSTIC</button>
+    </div>
+
+    <div id="terminal-container">
+        <div id="output"></div>
+        <span class="cursor" id="typing-cursor"></span>
+    </div>
+
+    <div id="progress-wrapper">
+        <div id="progress-fill"></div>
+        <div id="progress-text">0% - INJECTING PAYLOAD</div>
+    </div>
+
+    <div id="reveal-screen">
+        <h1>😂 YOU JUST GOT HACKED...<br>JUST KIDDING!</h1>
+        <p>Relax Khalid, this was a prank 😈</p>
+        <div>
+            <button class="action-btn" onclick="location.reload()">Restart Hack</button>
+            <button class="action-btn" onclick="alert('Link copied!')">Share this</button>
+        </div>
+    </div>
+
+    <script>
+        // --- AUDIO SYNTHESIS (No external files needed) ---
+        let audioCtx;
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'type') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(400 + Math.random() * 200, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } else if (type === 'warn') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'glitch') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(100 + Math.random() * 800, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            }
+        }
+
+        // --- SCRIPT SEQUENCE ---
+        const sequence = [
+            { text: "⚠ UNAUTHORIZED ACCESS DETECTED ⚠", class: "warning-text rgb-split", delay: 1500, sound: 'warn' },
+            { text: "Injecting exploit...", delay: 800 },
+            { text: "Accessing device...", delay: 600 },
+            { text: "Permission override: SUCCESS", delay: 1000 },
+            { text: "Bypassing firewall...", delay: 500 },
+            { text: "Disabling security protocols...", delay: 1200 },
+            { text: "Tracking user identity...", delay: 800 },
+            { text: "TARGET LOCKED: KHALID", class: "highlight-text rgb-split", delay: 2000, sound: 'warn' },
+            { text: "Accessing Khalid's private data...", delay: 1000 },
+            { text: "IP Address: 192.168." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255), delay: 400 },
+            { text: "Location: Earth 🌍", delay: 800 },
+            { text: "Device: Unknown (but suspicious 👀)", delay: 1200 },
+            { text: "Scanning browser history...", delay: 1500 },
+            { text: "Found: 'how to look cool tutorial'", class: "funny-text", delay: 1000 },
+            { text: "Found: 'how to impress people guide'", class: "funny-text", delay: 1500 },
+            { text: "Opening: private_folder.zip...", delay: 800 },
+            { text: "Extracting: memes_archive...", delay: 400 },
+            { text: "Accessing: crush_list.txt...", class: "warning-text", delay: 1000 },
+            { text: "UPLOADING ALL DATA TO DARK WEB SERVER...", class: "warning-text rgb-split", delay: 500, sound: 'warn' }
+        ];
+
+        const outputDiv = document.getElementById('output');
+        const terminal = document.getElementById('terminal-container');
+        const startBtn = document.getElementById('start-btn');
+        const startScreen = document.getElementById('start-screen');
+        const progressWrapper = document.getElementById('progress-wrapper');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const revealScreen = document.getElementById('reveal-screen');
+
+        let isGlitching = false;
+
+        // --- CORE LOGIC ---
+        startBtn.addEventListener('click', () => {
+            initAudio();
+            startScreen.style.display = 'none';
+            terminal.style.display = 'block';
+            document.body.requestFullscreen().catch(err => console.log(err)); // Try to go fullscreen
+            startHack();
+        });
+
+        async function typeLine(lineObj) {
+            const lineDiv = document.createElement('div');
+            if (lineObj.class) lineDiv.className = lineObj.class;
+            outputDiv.appendChild(lineDiv);
+
+            if (lineObj.sound === 'warn') playSound('warn');
+
+            for (let i = 0; i < lineObj.text.length; i++) {
+                lineDiv.innerHTML += lineObj.text.charAt(i);
+                if (Math.random() > 0.3) playSound('type'); // Occasional typing sound
+                terminal.scrollTop = terminal.scrollHeight;
+                
+                // Variable typing speed
+                let speed = isGlitching ? 5 : Math.random() * 30 + 10;
+                await new Promise(r => setTimeout(r, speed));
+            }
+            await new Promise(r => setTimeout(r, lineObj.delay));
+        }
+
+        async function startHack() {
+            // Run Terminal sequence
+            for (let line of sequence) {
+                await typeLine(line);
+            }
+
+            // Start Progress Bar
+            progressWrapper.style.display = 'block';
+            let progress = 0;
+            
+            const progressInterval = setInterval(() => {
+                // Unpredictable jumps
+                let jump = Math.floor(Math.random() * 5) + 1;
+                progress += jump;
+                
+                if (progress >= 99) {
+                    progress = 99;
+                    clearInterval(progressInterval);
+                    triggerClimax();
+                }
+
+                progressFill.style.width = progress + '%';
+                
+                if (progress < 30) progressText.innerText = progress + '% - INJECTING PAYLOAD';
+                else if (progress < 60) progressText.innerText = progress + '% - DECRYPTING FILES';
+                else if (progress < 90) progressText.innerText = progress + '% - UPLOADING SECRETS';
+                else progressText.innerText = '99% - FINALIZING...';
+
+            }, 200);
+        }
+
+        function triggerClimax() {
+            isGlitching = true;
+            document.body.classList.add('shake');
+            document.body.classList.add('flicker');
+            
+            let glitchSoundInterval = setInterval(() => playSound('glitch'), 50);
+
+            // Spam random files
+            let spamInterval = setInterval(() => {
+                const garbageDiv = document.createElement('div');
+                garbageDiv.innerText = "0x" + Math.random().toString(16).substr(2, 8) + " - DATA LEAK IN PROGRESS";
+                garbageDiv.className = "rgb-split warning-text";
+                outputDiv.appendChild(garbageDiv);
+                terminal.scrollTop = terminal.scrollHeight;
+            }, 50);
+
+            // Hold the climax for 3.5 seconds, then hard cut
+            setTimeout(() => {
+                clearInterval(glitchSoundInterval);
+                clearInterval(spamInterval);
+                document.body.classList.remove('shake');
+                document.body.classList.remove('flicker');
+                
+                // HARD SWITCH TO REVEAL
+                document.querySelector('.scanlines').style.display = 'none';
+                terminal.style.display = 'none';
+                progressWrapper.style.display = 'none';
+                document.body.style.backgroundColor = '#f0f0f0';
+                
+                revealScreen.style.display = 'flex';
+                
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(err => console.log(err));
+                }
+
+            }, 3500);
+        }
+
+        // Psychological effects: randomly move window around (simulated cursor move)
+        document.addEventListener('mousemove', (e) => {
+            if(isGlitching) {
+                // Fake resistance
+                window.scrollBy(Math.random() * 10 - 5, Math.random() * 10 - 5);
+            }
+        });
+
+    </script>
+</body>
+</html>
